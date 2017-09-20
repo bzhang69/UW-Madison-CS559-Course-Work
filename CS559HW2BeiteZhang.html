@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<body>
+  <H1><font face="Comic sans MS">Simple Solar System</font></H1>
+  <canvas id="myCanvas" width="800" height="800"></canvas>
+  <br/>
+	<input id="checkbox0" type="checkbox" name="orbit" value= "Show"/> <font face="Comic sans MS"> Display Orbitals </font> 
+	<input id="checkbox1" type="checkbox" name="star1" value= "Sun" checked/> <font face="Comic sans MS"> Sun </font>
+	<input id="checkbox2" type="checkbox" name="star2" value= "Mercury" checked/> <font face="Comic sans MS"> Mercury </font>
+	<input id="checkbox3" type="checkbox" name="star3" value= "Venus" checked/> <font face="Comic sans MS"> Venus </font>
+	<input id="checkbox4" type="checkbox" name="star4" value= "Earth" checked/> <font face="Comic sans MS"> Earth </font>
+	<input id="checkbox5" type="checkbox" name="star5" value= "Moon" checked/> <font face="Comic sans MS"> Moon </font>
+	<input id="checkbox6" type="checkbox" name="star6" value= "Mars" checked/> <font face="Comic sans MS"> Mars </font>
+  <input id="checkbox7" type="checkbox" name="star7" value= "Phobos" checked/> <font face="Comic sans MS"> Phobos </font>
+	<input id="checkbox8" type="checkbox" name="star8" value= "Deimos" checked/> <font face="Comic sans MS"> Deimos </font>
+
+</body>
+<script>
+  "use strict";
+
+  function setup() { 
+    // Set rotation speed variable x.
+    var x = 1;
+    var canvas = document.getElementById('myCanvas');
+    // Animation loop.
+    function draw() {     
+      var context = canvas.getContext('2d');
+      var rSpeed = x*Math.PI/180;
+      canvas.width = canvas.width;
+      
+      // This function draws a single star for given color and radius.
+      function drawStar(color, size) {
+        context.beginPath();
+        context.arc(0, 0, size, 0, Math.PI * 2);
+        context.fillStyle = color;
+        context.fill();
+        context.closePath;
+      }
+      
+      // This function draws a single orbital for given radius.
+      function drawOrbit(size) {
+        context.beginPath();
+        context.arc(0, 0, size, 0, Math.PI * 2); 
+        context.stroke();
+        context.closePath;        
+      }
+      
+      // This function draws a single star that spins for given speed, radius, color and size.
+      function spinStar(v, r, color, size) {
+        context.rotate(rSpeed*v);
+        context.translate(r,0);
+        drawStar(color,size);
+      }
+      
+      // Draw the solar system.
+      context.translate(400, 400);
+      if (checkbox1.checked) {
+        drawStar("red",30);
+      }
+      if (checkbox2.checked) {
+        context.save();
+        if (checkbox0.checked) {
+          drawOrbit(80);
+        }
+        spinStar(1.57, 80, "#421f05", 15);
+        context.restore();
+      }
+      if (checkbox3.checked) {
+        context.save();
+        if (checkbox0.checked) {
+          drawOrbit(160);
+        }
+        spinStar(7/6, 160, "gold", 17);
+        context.restore();
+      }
+      if (checkbox4.checked) {
+        context.save();
+        if (checkbox0.checked) {
+          drawOrbit(240);
+        }
+        spinStar(1, 240, "blue", 20);
+        context.restore();
+      }
+      if (checkbox5.checked) {
+        context.save();
+        context.rotate(rSpeed);
+        context.translate(240,0);
+        if (checkbox0.checked) {
+          drawOrbit(40);
+        }
+        spinStar(1/30, 40, "silver", 10);
+        context.restore();
+      }
+      context.restore();
+      if (checkbox6.checked) {
+      context.save();
+        if (checkbox0.checked) {
+          drawOrbit(330);
+        }
+      spinStar(4/6, 330, "orange", 17);
+      context.restore();
+      }  
+      if (checkbox7.checked) {
+        context.save();
+        context.rotate(rSpeed*4/6);
+        context.translate(330,0);
+        if (checkbox0.checked) {
+          drawOrbit(30);
+        }
+        spinStar(2/30, 30, "#ce9d77",7);
+        context.restore();
+      }
+      if (checkbox8.checked) {
+        context.save();
+        context.rotate(rSpeed*4/6);
+        context.translate(330,0);
+        if (checkbox0.checked) {
+          drawOrbit(50);
+        }
+        spinStar(1/30, 50, "#A9E7DA", 5);
+        context.restore();
+      }      
+      x = (x + 1);
+      window.requestAnimationFrame(draw);
+    }
+
+    window.requestAnimationFrame(draw);
+  }
+
+  window.onload = setup;
+  
+</script>
+<head>
+  <meta name="Solar System" content="CS559HW2BeiteZhang">
+  <meta charset="utf-8">
+  <title>Solar System</title>
+</head>
+</html>

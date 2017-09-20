@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html>
+<head>
+<H1><font face="Comic sans MS">3D Spining Boxes</font></H1>
+<meta name="3D Spining Boxes" content="CS559HW4BeiteZhang">
+  <meta charset="utf-8">
+  <title>3D Spining Boxes</title>
+  <canvas id="myCanvas"
+	   width="1000" height="800"
+	   style="border:1px solid #000;">
+  </canvas><br/>
+  <font face="Comic sans MS">
+    <input id="slider1" type="range" min="-100" max="100" />Rotate Camera x
+    <input id="slider2" type="range" min="0" max="100" /> Rotate Camera y
+	<input id="slider3" type="range" min="20" max="100" />Zoom
+    <input id="slider4" type="range" min="100" max="500" /> Speed   
+    <br/>
+	<input id="checkbox0" type="checkbox" name="fill" value= "Show" checked/> Fill	
+  </font>
+  <script src="http://graphics.cs.wisc.edu/JS/twgl-full.min.js"></script>
+</head>
+<body>
+</body>
+<script>
+	//This project used some parts of the code in the course example: http://jsbin.com/videyukuwu/1/edit?html,output
+    //This project is also based on my homework 3.
+		//This project is only tested on Chrome, but it should work fine on any other browsers.
+  function setup() { "use strict";
+	var canvas = document.getElementById('myCanvas');
+	var context = canvas.getContext('2d');
+	var m4 = twgl.m4;
+	var time = 0;
+	//Create star objects.
+	var slider1 = document.getElementById('slider1');
+	slider1.value = -80;
+	var slider2 = document.getElementById('slider2');
+	slider2.value = 8;
+    var slider3 = document.getElementById('slider3');
+    slider3.value = 45;
+	var slider4 = document.getElementById('slider4');
+     slider4.value = 200;
+	 
+  function moveToTx(x,y,z,Tx) {
+    var loc = [x,y,z];
+    var locTx = m4.transformPoint(Tx,loc);
+    context.moveTo(locTx[0]+500,-locTx[1]+400);
+  }
+
+  function lineToTx(x,y,z,Tx) {
+    var loc = [x,y,z];
+    var locTx = m4.transformPoint(Tx,loc);
+    context.lineTo(locTx[0]+500,-locTx[1]+400);
+  }                
+
+  function triangle(verts, color, eye) {
+    this.verts=verts;
+    this.color=color;
+    var midpoint=[(verts[0][0]+verts[1][0]+verts[2][0])/3, (verts[1][1]+verts[1][1]+verts[1][1])/3, (verts[2][2]+verts[2][2]+verts[2][2])/3];
+    this.dist=Math.sqrt(Math.pow(eye[0]+midpoint[0],2)+Math.pow(eye[1]+midpoint[1],2)+Math.pow(eye[2]+midpoint[2],2));
+  }     
+  
+  function square(tris, eye) {
+    this.tris=tris;
+    var v1=tris[0].verts;
+    var v2=tris[1].verts;
+    var midpoint=[(v1[0][0]+v2[2][0])/2,(v1[0][1]+v2[2][1])/2,(v1[0][2]+v2[2][2])/2];
+    this.dist=Math.sqrt(Math.pow(eye[0]+midpoint[0],2)+Math.pow(eye[1]+midpoint[1],2)+Math.pow(eye[2]+midpoint[2],2));
+  }  
+  
+  function cube(sqrs, eye) {
+    this.sqrs=sqrs;
+    var v1=sqrs[0].tris[0].verts[0];
+    var v2=sqrs[3].tris[0].verts[0];
+    var x=(v1[0]+v2[0])/2;
+    var y=(v1[1]+v2[1])/2;
+    var z=(v1[2]+v2[2])/2;
+    this.center=[x,y,z];
+    this.dist=Math.sqrt(Math.pow(eye[0]+this.center[0],2)+Math.pow(eye[1]+this.center[1],2)+Math.pow(eye[2]+this.center[2],2));
+  }                  
+
+  //Converts position input to an array of vertices and returns it.
+  function posToVerts(pos, size) {
+    var varray=[];
+    var v0=pos;
+  
+    var v1=[v0[0]+size,v0[1],v0[2]];
+    var v2=[v0[0],v0[1]+size,v0[2]];
+    var v3=[v0[0]+size,v0[1]+size,v0[2]];
+    var va=[v0,v1,v3];
+    var vb=[v0,v2,v3];
+    varray.push(va);
+    varray.push(vb);
+    
+    var v4=[v0[0],v0[1]+size,v0[2]];
+    var v5=[v0[0],v0[1],v0[2]+size];
+    var v6=[v0[0],v0[1]+size,v0[2]+size];
+    var vc=[v0,v4,v6];
+    var vd=[v0,v5,v6];
+    varray.push(vc);
+    varray.push(vd);
+    
+    var v7=[v0[0],v0[1],v0[2]+size];
+    var v8=[v0[0]+size,v0[1],v0[2]];
+    var v9=[v0[0]+size,v0[1],v0[2]+size];  
+    var ve=[v0,v7,v9];
+    var vf=[v0,v8,v9];
+    varray.push(ve);
+    varray.push(vf);
+    
+    var v00=[v0[0]+size,v0[1]+size,v0[2]+size]    
+    
+    var v10=[v00[0]-size,v00[1],v00[2]];
+    var v11=[v00[0],v00[1]-size,v00[2]];
+    var v12=[v00[0]-size,v00[1]-size,v00[2]]; 
+    var vg=[v00,v10,v12];
+    var vh=[v00,v11,v12];
+    varray.push(vg);
+    varray.push(vh);
+    
+    var v13=[v00[0],v00[1]-size,v00[2]];
+    var v14=[v00[0],v00[1],v00[2]-size];
+    var v15=[v00[0],v00[1]-size,v00[2]-size];
+    var vi=[v00,v13,v15];
+    var vj=[v00,v14,v15];
+    varray.push(vi);
+    varray.push(vj);
+    
+    var v16=[v00[0],v00[1],v00[2]-size];
+    var v17=[v00[0]-size,v00[1],v00[2]];
+    var v18=[v00[0]-size,v00[1],v00[2]-size]; 
+    var vk=[v00,v16,v18];
+    var vl=[v00,v17,v18];
+    varray.push(vk);
+    varray.push(vl);
+    
+    return varray;
+  }
+
+  //Converts vertices to an array of squares of a cube.
+  function vertsToCube(varray, eye, color) {
+    var tarray=[];
+    var sarray=[];
+  
+    for(var i = 0; i < varray.length; i++) {
+      tarray.push(new triangle(varray[i], color[i], eye));
+    }
+   
+    for(var i = 0; i < tarray.length; i=i+2) {
+      var tris = [tarray[i], tarray[i+1]];
+      sarray.push(new square(tris, eye));
+    }
+    sort(sarray);
+
+    return sarray;
+  }
+                    
+  function drawTri(tri, Tx, enFill) {
+    context.beginPath();
+    context.strokeStyle="black";
+    context.fillStyle=tri.color;
+
+    var i=0;
+    var axis=[1,0,0];
+    var m=m4.axisRotation(Tx,axis,Math.PI);
+  
+    moveToTx(tri.verts[0][0],tri.verts[0][1],tri.verts[0][2],Tx);
+    lineToTx(tri.verts[1][0],tri.verts[1][1],tri.verts[1][2],Tx);
+    lineToTx(tri.verts[2][0],tri.verts[2][1],tri.verts[2][2],Tx);
+    lineToTx(tri.verts[0][0],tri.verts[0][1],tri.verts[0][2],Tx);
+
+    if(enFill) {
+      context.fill();      
+    }
+
+    context.stroke();
+    context.closePath();
+  }
+                   
+  function drawSquare(sqr, Tx, enFill) {
+    drawTri(sqr.tris[0],Tx,enFill);
+    drawTri(sqr.tris[1],Tx,enFill);    
+  }                  
+                     
+  function drawCube(cube, Tx, enFill) {  
+    for(var i = 0; i < cube.sqrs.length; i++) {
+      drawSquare(cube.sqrs[i], Tx, enFill); 
+    }    
+  }                  
+  //Sort the array by the object's distance from the camera. This is used for painter's algorithm.
+  function sort(values) {
+      var length = values.length;
+		for(var i = 1; i < length; ++i) {
+		    var temp = values[i];
+			var j = i - 1;
+			for(; j >= 0 && values[j].dist > temp.dist; --j) {
+				values[j+1] = values[j];
+			}
+			values[j+1] = temp;
+		}
+}                  
+  
+
+  function drawSystem(eye,Tx) {
+    var enFill=checkbox0.checked;
+    time = (time+1)%36000;
+    var speed = slider4.value*0.01;
+    var alpha = speed*time/360*2*Math.PI;
+    var beta = alpha*2
+    
+    var color1=["rgb(255, 0, 0)","rgb(255, 0, 0)","rgb(200, 0, 0)"
+               ,"rgb(200, 0, 0)","rgb(155, 0, 0)","rgb(155, 0, 0)"
+               ,"rgb(155, 0, 0)","rgb(155, 0, 0)","rgb(100, 0, 0)"
+               ,"rgb(100, 0, 0)","rgb(55, 0, 0)","rgb(55, 0, 0)"];
+    var color2=["rgb(0,255, 0)","rgb(0, 255, 0)","rgb(0, 200, 0)"
+               ,"rgb(0, 200, 0)","rgb(0, 155, 0)","rgb(0, 155, 0)"
+               ,"rgb(0, 155, 0)","rgb(0, 155, 0)","rgb(0, 100, 0)"
+               ,"rgb(0, 100, 0)","rgb(0, 55, 0)","rgb(0, 55, 0)"];
+    var color3=["rgb(0, 0, 255)","rgb(0, 0, 255)","rgb(0, 0, 200)"
+               ,"rgb(0, 0, 200)","rgb(0, 0, 155)","rgb(0, 0, 155)"
+               ,"rgb(0, 0, 155)","rgb(0, 0, 155)","rgb(0, 0, 100)"
+               ,"rgb(0, 0, 100)","rgb(0, 0, 55)","rgb(0, 0, 55)"];        
+    
+    var pos1=[0,0,0];
+    var size1=50;
+    
+    var revox2 = 150*Math.cos(alpha);
+    var revoz2 = 150*Math.sin(alpha);    
+    var pos2=[revox2,0,revoz2];
+    var size2=30;   
+    
+    var revox3 = 50*Math.cos(beta)+revox2;
+    var revoz3 = 50*Math.sin(beta)+revoz2;    
+    var pos3=[revox3,0,revoz3];
+    var size3=20;    
+    
+    var varray1=posToVerts(pos1, size1);
+    var varray2=posToVerts(pos2, size2);
+    var varray3=posToVerts(pos3, size3);
+    var sarray1=vertsToCube(varray1, eye, color1);
+    var sarray2=vertsToCube(varray2, eye, color2);
+    var sarray3=vertsToCube(varray3, eye, color3);
+    var sarray=[sarray1,sarray2,sarray3];
+    var carray=[];
+    
+    for(var i = 0; i < sarray.length; i++) {
+      var sqrs = sarray[i];
+      carray.push(new cube(sqrs, eye));        
+    }
+    sort(carray);
+    for(var i = 0; i < carray.length; i++) {
+     drawCube(carray[i],Tx,enFill);
+    }   
+  }
+
+  function draw() {
+    canvas.width = canvas.width;
+    var angle1 = slider1.value*0.01*Math.PI;
+    var angle2 = slider2.value*0.01*Math.PI;
+    var angle3 = slider3.value*0.03;
+    var eye=[500*Math.cos(angle1),300*Math.cos(angle2),500*Math.sin(angle1)];
+    var target=[0,0,0];
+    var up=[0,1,0];;
+    var Tcamera=m4.inverse(m4.lookAt(eye,target,up));  
+    var projM;
+    var fov = .1/180*Math.PI*angle3;
+    //Perspective algorithm.
+    projM = m4.perspective(fov, 1, 0.1, 100);
+    Tcamera=m4.multiply(Tcamera, projM);
+    drawSystem(eye,Tcamera);
+    
+    window.requestAnimationFrame(draw);
+  }
+
+  window.requestAnimationFrame(draw);
+}
+window.onload = setup;
+</script>  
+</html>

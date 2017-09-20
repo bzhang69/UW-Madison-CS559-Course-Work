@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html>
+<head>
+<H1><font face="Comic sans MS">3D Solar System</font></H1>
+<meta name="3D Solar System" content="CS559HW3BeiteZhang">
+  <meta charset="utf-8">
+  <title>3D Solar System</title>
+  <canvas id="myCanvas"
+	   width="1000" height="800"
+	   style="border:1px solid #000;">
+  </canvas><br/>
+  <font face="Comic sans MS">
+    <input id="slider1" type="range" min="-100" max="100" />Rotate Camera x
+    <input id="slider2" type="range" min="0" max="100" /> Rotate Camera y
+	<input id="slider3" type="range" min="20" max="100" />Zoom
+    <input id="slider4" type="range" min="100" max="500" /> Speed   
+    <br/>
+	<input id="checkbox0" type="checkbox" name="axis" value= "Show"/> Display Axis	
+	<input id="checkbox1" type="checkbox" name="orbit" value= "Show"/> Display Orbitals  
+	<input id="checkbox2" type="checkbox" name="star1" value= "Sun" checked/>Sun
+	<input id="checkbox3" type="checkbox" name="star2" value= "Mercury" checked/>  Mercury 
+	<input id="checkbox4" type="checkbox" name="star3" value= "Venus" checked/>Venus
+	<input id="checkbox5" type="checkbox" name="star4" value= "Earth" checked/>Earth
+	<input id="checkbox6" type="checkbox" name="star5" value= "Moon" checked/>Moon 
+  </font>
+  <script src="http://graphics.cs.wisc.edu/JS/twgl-full.min.js"></script>
+</head>
+<body>
+</body>
+<script>
+	//This project used some parts of the code in the course example: http://jsbin.com/videyukuwu/1/edit?html,output
+  function setup() { "use strict";
+	var canvas = document.getElementById('myCanvas');
+	var context = canvas.getContext('2d');
+	var m4 = twgl.m4;
+	var time = 0;
+	//Create star objects.
+	var sun = new star(0,80,"red");
+	var mercury = new star(150,20,"gray"); 
+	var venus = new star(300,50,"gold");                    
+	var earth = new star(500,50,"blue");
+	var moon = new star(80,17,"silver");
+	var mars = new star(880,25,"orange");
+	var slider1 = document.getElementById('slider1');
+	slider1.value = -80;
+	var slider2 = document.getElementById('slider2');
+	slider2.value = 80;
+    var slider3 = document.getElementById('slider3');
+    slider3.value = 45;
+	var slider4 = document.getElementById('slider4');
+     slider4.value = 200;
+
+//Use slider3 to control the scales of the drawing.		 
+  function moveToTx(x,y,z,Tx) {
+    var loc = [x,y,z];
+    var locTx = m4.transformPoint(Tx,loc);
+    var zoom1 = slider3.value/50;
+    var zoom2 = slider3.value*8-350;
+    context.moveTo(zoom1*(locTx[0]+500)-zoom2,zoom1*(-locTx[1]+400)-zoom2);
+  }
+
+  function lineToTx(x,y,z,Tx) {
+    var loc = [x,y,z];
+    var locTx = m4.transformPoint(Tx,loc);
+    var zoom1 = slider3.value/50;
+    var zoom2 = slider3.value*8-350;
+    context.lineTo(zoom1*(locTx[0]+500)-zoom2,zoom1*(-locTx[1]+400)-zoom2);
+  }
+                
+  function drawAxes(Tx) {
+    context.beginPath();
+    moveToTx(0,0,0,Tx);
+    lineToTx(100,0,0,Tx);
+    context.strokeStyle="purple";
+    context.lineWidth=2;    
+    context.stroke();
+    context.closePath();
+    context.beginPath();
+    moveToTx(0,0,0,Tx);
+    lineToTx(0,150,0,Tx);
+    context.strokeStyle="green";
+    context.stroke();
+    context.closePath();
+    context.beginPath();
+    moveToTx(0,0,0,Tx);
+    lineToTx(0,0,250,Tx);
+    context.strokeStyle="blue";
+    context.stroke();
+    context.closePath();
+    
+  }
+
+	//A star object for storing informations of each stars.
+  function star(spinR,size,color,distance,revox,revoz,Tx) {
+    this.spinR = spinR;
+    this.size = size;
+    this.color = color;
+    this.distance = distance;
+    this.revox = revox;
+    this.revoz = revoz;
+    this.Tx = Tx;
+  }                  
+  
+	// Draw a single star. x,y,z indicates it's position. r is it's radius.
+  function drawSphere(x,y,z,r,Tx,color) {
+    context.beginPath();
+    context.strokeStyle="black";
+    context.fillStyle=color;
+    var i=0;
+    var axis=[1,0,0];
+    var m=m4.axisRotation(Tx,axis,Math.PI);
+
+    moveToTx(x+r,y,z,Tx);
+    for(i=0;i<180;i++) {
+      var phi=i*2*2*Math.PI/360;
+      var ax=r*Math.cos(phi);
+      var ay=r*Math.sin(phi);
+      lineToTx(x+ax,y+ay,z,Tx);
+      context.fill();
+    }
+
+    moveToTx(x,y,z+r,Tx);
+    for(i=0;i<180;i++) {
+      var phi=i/360*2*2*Math.PI;
+      var az=r*Math.cos(phi);
+      var ay=r*Math.sin(phi);
+      lineToTx(x,y+ay,z+az,Tx);
+      context.fill();
+    }
+
+    moveToTx(x,y,z+r,Tx);
+    for(i=0;i<180;i++) {
+      var phi=i/360*2*2*Math.PI;
+      var az=r*Math.cos(phi);
+      var ax=r*Math.sin(phi);
+      lineToTx(x+ax,y,z+az,Tx);
+      context.fill();
+    }
+
+    context.lineWidth = 2;
+    context.stroke();
+    context.closePath();
+    moveToTx(x+r,y,z,Tx);
+    for(i=0;i<180;i++) {
+      var phi=i*2*2*Math.PI/360;
+      var ax=r*Math.cos(phi);
+      var ay=r*Math.sin(phi);
+      lineToTx(x+ax,y+ay,z,Tx);
+    }
+  }
+                      
+  function drawOrbit(x,z,r,Tx,color) {
+    context.beginPath();
+    context.strokeStyle=color;
+    var i=0;
+    moveToTx(x+r,0,z,Tx);
+    for(i=0;i<181;i++) {
+      var phi=i*2*2*Math.PI/360;
+      var ax=r*Math.cos(phi);
+      var az=r*Math.sin(phi);
+      lineToTx(x+ax,0,z+az,Tx);
+    }    
+    context.stroke();
+    context.closePath();
+  }
+  
+  function sort(values) {
+      var length = values.length;
+		for(var i = 1; i < length; ++i) {
+		    var temp = values[i];
+			var j = i - 1;
+			for(; j >= 0 && values[j].distance > temp.distance; --j) {
+				values[j+1] = values[j];
+			}
+			values[j+1] = temp;
+		}
+}                  
+  
+	//Draw the solar system.
+  function drawSystem(eye,Tx) {
+	//Use slider4 to control the speed of the rotation.
+	var speed = slider4.value*0.01;
+    time = (time+1)%36000;
+    var alpha = speed*time/360*2*Math.PI; 
+		//Setup drawing of the Sun.
+    //Variables for calculating self-rotation of each star.
+    var axis0 = [0,1,0]
+    var beta0 = alpha/5;    
+    var Tmodel0 = m4.axisRotation(axis0,beta0);
+		//Position on x,z axis.
+    sun.revox = 0;
+    sun.revoz = 0;
+		//Distance between camera and the stars, used to calculate whether an object is blocked.
+    sun.distance = Math.sqrt(Math.pow(eye[0],2)+Math.pow(eye[2],2));
+    sun.Tx = m4.multiply(Tmodel0,Tx);
+		
+		//Setup drawing of the Mercury.
+    var alpha1 = alpha*88/365;
+    mercury.revox = mercury.spinR*Math.cos(alpha1);
+    mercury.revoz = mercury.spinR*Math.sin(alpha1);    
+    var axis1 = [mercury.revox,0,mercury.revoz];
+    var beta1 = alpha;  
+    var Tmodel1 = m4.axisRotation(axis1,beta1);    
+    mercury.distance = Math.sqrt(Math.pow(eye[0]-mercury.revox,2)+Math.pow(eye[2]-mercury.revoz,2));    
+    mercury.Tx = m4.multiply(Tmodel1,Tx);	
+		
+		//Setup drawing of the Venus.
+    var alpha2 = alpha*225/365;
+    venus.revox = venus.spinR*Math.cos(alpha2);
+    venus.revoz = venus.spinR*Math.sin(alpha2);    
+    var axis2 = [venus.revox,0,venus.revoz];
+    var beta2 = alpha*7/10;  
+    var Tmodel2 = m4.axisRotation(axis2,beta2);    
+    venus.distance = Math.sqrt(Math.pow(eye[0]-venus.revox,2)+Math.pow(eye[2]-venus.revoz,2));    
+    venus.Tx = m4.multiply(Tmodel2,Tx);
+
+		//Setup drawing of the Earth.
+    var alpha3 = alpha;
+    earth.revox = earth.spinR*Math.cos(alpha3);
+    earth.revoz = earth.spinR*Math.sin(alpha3);    
+    var axis3 = [earth.revox,0,earth.revoz];
+    var beta3 = alpha*10;  
+    var Tmodel3 = m4.axisRotation(axis3,beta3);    
+    earth.distance = Math.sqrt(Math.pow(eye[0]-earth.revox,2)+Math.pow(eye[2]-earth.revoz,2));    
+    earth.Tx = m4.multiply(Tmodel3,Tx);
+
+		//Setup drawing of the Moon, which rotates hierarchically around the Earth, which rotates around the Sun.
+    var alpha4 = alpha*60/365;  
+    moon.revox = moon.spinR*Math.cos(alpha4)+earth.revox;
+    moon.revoz = moon.spinR*Math.sin(alpha4)+earth.revoz;    
+    var axis4 = [moon.revox,0,moon.revoz]
+    var beta4 = alpha*2;   
+    var Tmodel4 = m4.axisRotation(axis4,beta4);     
+    moon.distance = Math.sqrt(Math.pow(eye[0]-moon.revox,2)+Math.pow(eye[2]-moon.revoz,2));
+    moon.Tx = m4.multiply(Tmodel4,Tx);		
+
+    /*var alpha5 = alpha*687/365;  
+    mars.revox = mars.spinR*Math.cos(alpha5)+earth.revox;
+    mars.revoz = mars.spinR*Math.sin(alpha5)+earth.revoz;    
+    var axis5 = [mars.revox,0,mars.revoz]
+    var beta5 = alpha*4/5;   
+    var Tmodel5 = m4.axisRotation(axis5,beta5);     
+    mars.distance = Math.sqrt(Math.pow(eye[0]-mars.revox,2)+Math.pow(eye[2]-mars.revoz,2));
+    mars.Tx = m4.multiply(Tmodel5,Tx);*/		
+
+		//Draw orbitals.
+    if(checkbox1.checked) {
+        drawOrbit(0,0,mercury.spinR,Tx,mercury.color);
+        drawOrbit(0,0,venus.spinR,Tx,venus.color);
+        drawOrbit(0,0,earth.spinR,Tx,earth.color);
+        drawOrbit(earth.revox,earth.revoz,moon.spinR,Tx,mercury.color);
+    }
+    
+		//Draw stars in order so objects in the front is not blocked.
+    var stars = [sun,mercury,venus,earth,moon];
+    var boxes = [checkbox2,checkbox3,checkbox4,checkbox5,checkbox6];
+    var enabled=[];
+		for (var k=0; k<stars.length;k++) {
+			if(boxes[k].checked) {
+				enabled.push(stars[k]);
+			}
+		}
+    sort(enabled);
+		//Draw the stars.
+    for(var k=0;k<enabled.length;k++) {
+      drawSphere(enabled[k].revox,0,enabled[k].revoz,enabled[k].size,enabled[k].Tx,enabled[k].color);
+    }
+  }
+
+  function draw() {
+    canvas.width = canvas.width;
+    var angle1 = slider1.value*0.01*Math.PI;
+    var angle2 = slider2.value*0.01*Math.PI;
+    var eye=[500*Math.cos(angle1),300*Math.cos(angle2),500*Math.sin(angle1)];
+    var target=[0,0,0];
+    var up=[0,1,0];;
+    var Tcamera=m4.inverse(m4.lookAt(eye,target,up));   
+		if(checkbox0.checked) {
+			drawAxes(Tcamera);
+		}
+    drawSystem(eye,Tcamera);
+    
+    window.requestAnimationFrame(draw);
+  }
+
+  window.requestAnimationFrame(draw);
+}
+window.onload = setup;
+</script>  
+</html>
