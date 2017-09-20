@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<!-- Graphics town framework code by Mike Gleicher
+  -- written October, 2015
+  -->
+<head>
+    <meta charset="UTF-8">
+    <title>GraphicsTown JS 2017!</title>
+		<input id = "skybox" type="checkbox"  value="Skybox" checked>Skybox<br>
+</head>
+<body>
+<!-- load this stuff first -->
+<script src="Libraries/twgl-full.js"></script>
+<script src="Libraries/panel.js"></script>
+<script src="Libraries/arcball.js"></script>
+<script src="grobject.js"></script>
+<script src="ExampleObjects/ground.js"></script>
+
+<!-- This is where we load the objects for the world -->
+<script src="ExampleObjects/house.js"></script>
+<script src="ExampleObjects/streetFlag.js"></script>
+<script src="ExampleObjects/dog.js"></script>
+
+<script src="ExampleObjects/skybox.js"></script>
+<script src="ExampleObjects/mirror.js"></script>
+
+<!-- This gets loaded LAST (actually, it probably doesn't have to) -->
+<script src="graphicstown.js"></script>
+</body>
+
+<!-- all of the shaders get stuck here in the HTML because
+  -- that's the only way I know to load them without either
+  -- sticking them in JavaScript strings, or using a web server
+  -->
+
+
+
+<script id="house-vs" type="notjs">
+            precision highp float;
+            attribute vec3 vpos;
+            attribute vec3 vnormal;
+            attribute vec3 vcolor;
+            uniform mat3 normalMatrix;
+            uniform mat4 modelViewMatrix;
+            uniform mat4 projectionMatrix;
+            uniform mat4 view;
+						uniform mat4 proj;
+						uniform mat4 model;
+						uniform vec3 lightdir;
+						uniform vec3 cubecolor;						
+            varying vec3 fNormal;
+            varying vec3 fPosition;
+            varying vec3 fColor;
+						
+						attribute vec2 a_texcoord;						
+						varying vec2 v1_texcoord;			
+
+
+            void main()
+            {
+                fNormal = normalize(view * model * vec4(vnormal,0.0)).xyz;
+                fPosition = (view * model * vec4(vpos, 1.0)).xyz;
+                fColor = vcolor;
+                gl_Position = proj * view * model * vec4(vpos, 1.0);
+								v1_texcoord = a_texcoord;							
+            }
+  </script>
+<script id="house-fs" type="notjs">
+            precision highp float;
+            varying vec3 fPosition;
+            varying vec3 fNormal;
+            varying vec3 fColor;
+            uniform vec3 lightdir;
+						
+						varying vec2 v1_texcoord;	
+						uniform sampler2D u1_texture;	
+						
+            const float ka         = 1.0;
+            const float kd         = 0.9;
+            const float ks         = 1.0;
+            const float exp       = 32.0;
+            const vec3  lightPos   = vec3(100.0,00.0,0.0);
+            const vec3  lightCol   = vec3(1.0,1.0,1.0);
+            const vec3  objectCol  = vec3(1.0,0.6,0.0); 
+
+            void main()
+            {
+							vec3 nL=normalize(normalize(-fPosition)+normalize(lightdir));
+							vec3 ambColor  = ka*fColor;
+							vec3 diffColor  = kd*fColor*dot(normalize(lightdir),normalize(fNormal));
+							vec3 specColor = ks*lightCol*pow(max(dot(nL,normalize(fNormal)),0.0),exp);
+							gl_FragColor = vec4(diffColor+specColor+ambColor, 1.0)+texture2D(u1_texture, v1_texcoord);
+            }
+  </script>
+	
+<script id="flag-vs" type="notjs">
+            precision highp float;
+            attribute vec3 vpos;
+            attribute vec3 vnormal;
+            attribute vec3 vcolor;
+            uniform mat3 normalMatrix;
+            uniform mat4 modelViewMatrix;
+            uniform mat4 projectionMatrix;
+            uniform mat4 view;
+						uniform mat4 proj;
+						uniform mat4 model;
+						uniform vec3 lightdir;
+						uniform vec3 cubecolor;						
+            varying vec3 fNormal;
+            varying vec3 fPosition;
+            varying vec3 fColor;
+						
+						attribute vec2 a_texcoord;						
+						varying vec2 v1_texcoord;			
+
+
+            void main()
+            {
+                fNormal = normalize(view * model * vec4(vnormal,0.0)).xyz;
+                fPosition = (view * model * vec4(vpos, 1.0)).xyz;
+                fColor = vcolor;
+                gl_Position = proj * view * model * vec4(vpos, 1.0);
+								v1_texcoord = a_texcoord;							
+            }
+  </script>
+<script id="flag-fs" type="notjs">
+            precision highp float;
+            varying vec3 fPosition;
+            varying vec3 fNormal;
+            varying vec3 fColor;
+            uniform vec3 lightdir;
+						
+						varying vec2 v1_texcoord;	
+						uniform sampler2D u1_texture;	
+						
+            const float ka         = 1.0;
+            const float kd         = 0.9;
+            const float ks         = 1.0;
+            const float exp       = 32.0;
+            const vec3  lightPos   = vec3(100.0,00.0,0.0);
+            const vec3  lightCol   = vec3(1.0,1.0,1.0);
+            const vec3  objectCol  = vec3(1.0,0.6,0.0); 
+
+            void main()
+            {
+							vec3 nL=normalize(normalize(-fPosition)+normalize(lightdir));
+							vec3 ambColor  = ka*fColor;
+							vec3 diffColor  = kd*fColor*dot(normalize(lightdir),normalize(fNormal));
+							vec3 specColor = ks*lightCol*pow(max(dot(nL,normalize(fNormal)),0.0),exp);
+							gl_FragColor = vec4(diffColor+specColor+ambColor, 1.0)+texture2D(u1_texture, v1_texcoord);
+            }
+  </script>	
+	
+<script id="dog-vs" type="notjs">
+            precision highp float;
+            attribute vec3 vpos;
+            attribute vec3 vnormal;
+            attribute vec3 vcolor;
+            uniform mat3 normalMatrix;
+            uniform mat4 modelViewMatrix;
+            uniform mat4 projectionMatrix;
+            uniform mat4 view;
+						uniform mat4 proj;
+						uniform mat4 model;
+						uniform vec3 lightdir;
+						uniform vec3 cubecolor;						
+            varying vec3 fNormal;
+            varying vec3 fPosition;
+            varying vec3 fColor;
+						uniform vec3 dogColor;
+
+						attribute vec2 a_texcoord;						
+						varying vec2 v1_texcoord;
+
+            void main()
+            {
+                fNormal = normalize(view * model * vec4(vnormal,0.0)).xyz;
+                fPosition = (view * model * vec4(vpos, 1.0)).xyz;
+                fColor = vcolor;
+                gl_Position = proj * view * model * vec4(vpos, 1.0);
+								v1_texcoord = a_texcoord;									
+            }
+  </script>
+<script id="dog-fs" type="notjs">
+            precision highp float;
+            varying vec3 fPosition;
+            varying vec3 fNormal;
+            varying vec3 fColor;
+            uniform vec3 lightdir;
+						uniform vec3 dogColor;
+						varying vec2 v1_texcoord;	
+						uniform sampler2D u1_texture;
+						
+            const float ka         = 0.8;
+            const float kd         = 0.6;
+            const float ks         = 0.3;
+            const float exp       = 20.0;
+            const vec3  lightPos   = vec3(100.0,00.0,0.0);
+            const vec3  lightCol   = vec3(1.0,1.0,1.0);
+            const vec3  objectCol  = vec3(1.0,0.4,0.0); 
+
+            void main()
+            {
+							vec3 nL=normalize(normalize(-fPosition)+normalize(lightdir));
+							vec3 ambColor  = ka*dogColor;
+							vec3 diffColor  = kd*dogColor*dot(normalize(lightdir),normalize(fNormal));
+							vec3 specColor = ks*lightCol*pow(max(dot(nL,normalize(fNormal)),0.0),exp);
+							gl_FragColor = vec4(diffColor+specColor+ambColor, 1.0)+texture2D(u1_texture, v1_texcoord);
+            }
+  </script>		
+	
+
+<!-- Special Ground Plane Shader - makes a boring
+  -- checkerboard
+  -->
+<script id="ground-vs" type="not-js">
+    precision highp float;
+
+    attribute vec3 vpos;
+    varying vec3 outPos;
+
+    uniform mat4 view;
+    uniform mat4 proj;
+
+    void main(void) {
+        gl_Position = proj * view * vec4(vpos, 1.0);
+        outPos = vpos;
+    }
+</script>
+<script id="ground-fs" type="notjs">
+    // note this is used for more than just the cube
+    precision highp float;
+    varying vec3 outPos;
+    void main(void) {
+        float xs = step(1.0,mod(outPos.x,2.0));
+        float zs = step(1.0,mod(outPos.z,2.0));
+        float ss = (xs>.5) ? zs : 1.0-zs;
+        gl_FragColor = mix(vec4(.8, .8, .8,1),
+                           vec4(.8, .8, .8,1),
+                           ss
+                           );
+
+    }
+</script>
+
+<script id="mirror-vs" type="notjs">
+	precision highp float;
+	
+	attribute vec3 vpos;
+	attribute vec2 texPos;
+
+	uniform mat4 model;
+	uniform mat4 view;
+	uniform mat4 proj;
+	
+	varying vec2 uPos;	
+
+	void main() {
+		gl_Position = proj * model* view * vec4(vpos, 1.0);
+		uPos = (gl_Position.xy / gl_Position.w + 1.0) / 2.0;
+	}
+
+</script>
+<script id="mirror-fs" type="notjs">
+	precision highp float;
+	uniform sampler2D uTexture;	
+	varying vec2 uPos;
+
+	void main() {
+		gl_FragColor = texture2D(uTexture, uPos);
+		gl_FragColor.rgb *= 1.2;
+	}
+</script>
+
+</html>
